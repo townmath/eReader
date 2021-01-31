@@ -13,7 +13,9 @@ Name= eReader
 
 Exec= x-terminal-emulator -e "python3 /boot/books/eReader.py"
 ```
-Now when you reboot it should display whatever pdfs you have in /boot/books/ as simple menu, use up and down arrows to select and enter to choose.  Once your book is open, right arrow is forward pages, left arrow is back.  Any other key will quit.  This is bare-bones and only does text, but with this size screen it is hard to do much else.  
+Now when you reboot it should display whatever pdfs you have in /boot/books/ as simple menu, use up and down arrows to select and enter to choose.  Once your book is open, right arrow is forward pages, left arrow is back.  Any other key will quit.  This is bare-bones and only does text, but with this size screen it is hard to do much else.  This is meant to be able to run headless, that is why it shuts down when you exit and starts on startup.  If you don't want to be tethered to a full keyboard, you could use a makey makey. 
+
+![](eReader_in_action.png)
 
 Enjoy. 
 
