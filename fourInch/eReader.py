@@ -2,7 +2,7 @@
 import os
 #import pdf2image
 from getkey import getkey, keys
-Test=True#False
+Test=False#True#False
 if not Test:
     from waveshare_epd import epd4in2
     directory="/boot/books/"
@@ -10,10 +10,22 @@ else:
     directory="."
 import time
 from PIL import Image,ImageDraw,ImageFont
+import pickle
+#pdf
 import PyPDF2
 import textwrap
 import slate3k
 import tempfile
+#epub
+import ebooklib
+from ebooklib import epub
+import html2text
+import io
+#buttons
+import buttonshim
+from evdev import uinput, UInput, ecodes as e
+
+
 #constants
 WHITE = (0xFF, 0xFF, 0xFF)
 BLACK = (0x00, 0x00, 0x00)
@@ -23,17 +35,39 @@ FONTSIZE = 23
 DLINE=15
 WLINE=23
 
+if not Test:#pimoroni shim buttons
+    KEYCODES = [e.KEY_UP, e.KEY_DOWN, e.KEY_LEFT, e.KEY_RIGHT, e.KEY_ENTER]
+    BUTTONS = [buttonshim.BUTTON_A, buttonshim.BUTTON_B, buttonshim.BUTTON_C, buttonshim.BUTTON_D, buttonshim.BUTTON_E]
+    ui = UInput({e.EV_KEY: KEYCODES}, name="Button-SHIM", bustype=e.BUS_USB)
+
+    @buttonshim.on_press(BUTTONS)
+    def button_p_handler(button, pressed):
+        keycode = KEYCODES[button]
+        print("Press: {}".format(keycode))
+        ui.write(e.EV_KEY, keycode, 1)
+        ui.syn()
+
+
+    @buttonshim.on_release(BUTTONS)
+    def button_r_handler(button, pressed):
+        keycode = KEYCODES[button]
+        print("Release: {}".format(keycode))
+        ui.write(e.EV_KEY, keycode, 0)
+        ui.syn()
+
 def get_name_list():
    nameList=[]
    for root, dirs, files in os.walk(directory, topdown=False):
       for name in files:
-         if root==directory and name.endswith(".pdf"):
+         if (root==directory and 
+             (name.endswith(".pdf") or name.endswith(".epub")) and
+             not name.startswith('._')):
             #print(name)
             nameList.append(os.path.join(root, name))
    return nameList
 
 if Test:
-    font = ImageFont.truetype('/Library/Fonts/Arial Black.ttf',FONTSIZE)
+    font = ImageFont.truetype('/Library/Fonts/Verdana.ttf',FONTSIZE)
     width,height=400,300
 else:
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", FONTSIZE)
@@ -47,7 +81,35 @@ def convert_pdf_to_string(file):#_path):
     #test=slate3k.utils.normalise_whitespace(''.join(doc[0]).replace('\n', ' '))
     return doc.text().replace('- ','')
 
-def extract_text(pdfPage):
+def extract_image(text,book,image):
+    text=text.replace('\n','')
+    index=text.find('![')
+    hrefStart,hrefEnd=None,None
+    for i in range(index,len(text)):
+        if text[i]=='(':
+            hrefStart=i+1
+        elif text[i]==')' and hrefStart is not None:
+            hrefEnd=i
+            break
+    if hrefEnd is None:#image is across two text blocks, bummer
+        return None,text[:index]
+    href=text[hrefStart:hrefEnd]
+    print(href)
+    imgObj=book.get_item_with_href(href)
+    stream=io.BytesIO(imgObj.content)
+    newImage= Image.open(stream)
+    #image=image.convert("P")
+    #image=image.rotate(90, Image.NEAREST, expand = 1)#to match the screen
+    h,w=newImage.size
+    mult=width/w if w>h else height/h
+    newWidth=int(w*mult)
+    newHeight=int(h*mult)
+    newImage=newImage.resize((newHeight,newWidth),Image.LANCZOS)#if it is a size problem
+    image.paste(newImage,((height-newHeight)//2,(width-newWidth)//2))
+    print(w,width,newWidth,h,height,newHeight,image)
+    return image,text[:index]+text[hrefEnd+1:]
+
+def extract_text_pdf(pdfPage):
     pdf_writer = PyPDF2.PdfFileWriter()
     pdf_writer.addPage(pdfPage)
     tempFile=tempfile.TemporaryFile()#open("temp.pdf",'wb')
@@ -55,6 +117,11 @@ def extract_text(pdfPage):
     #tempFile.close()
     tempFile.seek(os.SEEK_SET)
     return convert_pdf_to_string(tempFile)
+
+def extract_text_epub(chapter):
+    html = html2text.HTML2Text()
+    text=html.handle(chapter.content.decode('utf-8'))#
+    return text
 
 def selection(nameList):
     selected=0
@@ -66,7 +133,7 @@ def selection(nameList):
                 outNames+='> '
             else:
                 outNames+='  '
-            outNames+=name[len(directory)+1:len(directory)+1+20]+"\n"
+            outNames+=name[len(directory):len(directory)+20]+"\n"
         image = Image.new("RGB", (height, width))
         draw = ImageDraw.Draw(image)
         draw.rectangle((0, 0, height, width),fill=BACKGROUND_COLOR)
@@ -77,13 +144,19 @@ def selection(nameList):
             epd.display(epd.getbuffer(image))#for epaper
             #epd.sleep()#sleep every time?
             #time.sleep(2)#or this kind of sleep? and?
+        if not Test:
+            buttonshim.set_pixel(0x00,0x00,0x00)
         key = getkey()
         if key == keys.DOWN:
+            if not Test:
+                buttonshim.set_pixel(0x00, 0xff, 0x00)
             if selected>=len(nameList):
                 selected=0
             else:
                 selected+=1
         elif key == keys.UP:
+            if not Test:
+                buttonshim.set_pixel(0xff, 0xff, 0x00)
             if selected<=0:
                 selected=len(nameList)-1
             else:
@@ -94,19 +167,38 @@ def selection(nameList):
     return nameList[selected]
 
 def read_book(name):
-    pdf_file = open(name, 'rb')
-    read_pdf = PyPDF2.PdfFileReader(pdf_file)
-    page=0
+    if name.endswith('pdf'):
+        pdf_file = open(name, 'rb')
+        read_pdf = PyPDF2.PdfFileReader(pdf_file)
+    elif name.endswith('epub'):
+        book = epub.read_epub(name)
+        items=[]
+        for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+            items.append(item.get_id())
+    try:
+        pageFile=open(os.path.join(directory,"pageFile.bin"),'rb')
+        pages=pickle.load(pageFile)
+        page,line=pages.get(name,(0,0))
+        pageFile.close()
+    except:
+        pages=dict()
+        page,line=0,0
     oldPageLen=0
     oldPage=-1
-    line=0
     dLine=DLINE
-    zoom=1
     quitIt=False
+    isImage=False
     while not quitIt:
         if page!=oldPage:
-            pdfPage = read_pdf.getPage(page)
-            text=extract_text(pdfPage)
+            if name.endswith('pdf'):
+                pdfPage = read_pdf.getPage(page)
+                text=extract_text_pdf(pdfPage)
+            elif name.endswith('epub'):
+                if page>=len(items):
+                    print("end of book")
+                    page-=1
+                chapter=book.get_item_with_id(items[page])
+                text=extract_text_epub(chapter)
             text=text.replace('\n',' ')
             oldLen=len(text)+1
             while oldLen!=len(text):
@@ -114,9 +206,11 @@ def read_book(name):
                 text=text.replace('  ',' ')
             text=text.replace('- ','')
             oldPage=page
+            isImage=False
         if len(text)<=1:#skip empty pages
             page+=1
             continue
+        print(len(text),page,line,chapter)
         image = Image.new("RGB", (height, width))
         draw = ImageDraw.Draw(image)
         draw.rectangle(
@@ -127,9 +221,14 @@ def read_book(name):
         #print(text)
         #help from https://stackoverflow.com/questions/8257147/wrap-text-in-pil
         textList=textwrap.wrap(text, width=WLINE)
-        #text="\n".join(textList)
-        #print(font.getsize("\n".join(textList[line:line+dLine])))
-        draw.text((x, y), "\n".join(textList[line:line+dLine]), font=font, fill=TEXT_COLOR)
+        imageText="\n".join(textList[line:line+dLine])
+        if '![' in imageText:#TODO check for image on page
+            image,text=extract_image(text,book,image)
+            isImage=True
+            #print(len(imageText))
+        else:
+            draw.text((x, y), imageText, font=font, fill=TEXT_COLOR)
+            isImage=False
         if Test:
             image.show()#save("test.png")#for testing
         else:
@@ -137,14 +236,22 @@ def read_book(name):
             epd.display(epd.getbuffer(image))#for epaper
             epd.sleep()#sleep every time?
             #time.sleep(2)#or this kind of sleep? and?
+        if not Test:
+            buttonshim.set_pixel(0x00,0x00,0x00)#turn off while waiting
         key = getkey()
         if key == keys.RIGHT:
-            line+=dLine
-            if line>=len(textList):
-                oldPageLen=len(textList)
-                line=0
-                page+=1
+            if not Test:
+                buttonshim.set_pixel(0x94, 0x00, 0xd3)
+            if not isImage:#if there was an image keep line the same
+                line+=dLine
+                if line>=len(textList):
+                    oldPageLen=len(textList)
+                    line=0
+                    page+=1
         elif key == keys.LEFT:
+            if not Test:
+                buttonshim.set_pixel(0x00, 0x00, 0xff)
+            isImage=False
             line-=dLine
             if line<0:
                 if page>0:
@@ -159,21 +266,32 @@ def read_book(name):
             quitIt=True
        #elif key == 'a':
        #elif key == 'Y':
+    pages[name]=(page,line)
+    return pages
 
 if __name__=="__main__":
     nameList=get_name_list()
     #if len(nameList)==0:#TODO
     if len(nameList)>1:#choose pdf to read
         book=selection(nameList)
-        read_book(book)
+        pages=read_book(book)
     else:
-        read_book(nameList[0])
+        pages=read_book(nameList[0])
 
     if not Test:
+        pageFile=open(os.path.join(directory,"pageFile.bin"),'wb')
+        #pages[name]=(page,line)
+        pickle.dump(pages,pageFile)
+        pageFile.close()
         epd.init()
         epd.Clear()
         epd.sleep()
         epd.Dev_exit()
         print("system will shutdown in 5 seconds")
-        time.sleep(5)
+        for i in range(5):
+            print(i)
+            buttonshim.set_pixel(0xff, 0x00, 0x00)
+            time.sleep(.5)
+            buttonshim.set_pixel(0x00, 0x00, 0x00)
+            time.sleep(.5)
         os.system("sudo shutdown -h now")
