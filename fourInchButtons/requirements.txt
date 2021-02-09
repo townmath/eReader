@@ -1,0 +1,9 @@
+getkey
+PIL
+pypdf2
+textwrap
+slate3k
+ebooklib
+html2text
+buttonshim
+evdev
