@@ -32,7 +32,7 @@ sudo pip3 install -r requirements.txt
 ```
 Now to following the steps here from the ePaper company: https://www.waveshare.com/wiki/4.2inch_e-Paper_Module#Raspberry_Pi
 
-We will enable SPI interface using raspi-config under 3 Interface Options, select 4 SPI and yes to enable.  Much of the next few steps are pasted verbatim from the linked wiki.  We'll install BCM libraries.
+We will enable SPI and I2C interface using raspi-config under 3 Interface Options, select 4 SPI and yes to enable (then do the same for I2C).  Much of the next few steps are pasted verbatim from the linked wiki.  We'll install BCM libraries.
 
 ```
 wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.60.tar.gz
@@ -53,7 +53,7 @@ Then we'll clone their libraries so we can interface with the screen using pytho
 sudo git clone https://github.com/waveshare/e-Paper
 ```
 
-After following those steps, put the code and pdfs in /boot/books/, a folder you have create.  This way you can add pdfs from a regular computer, since the boot folder is visible when you plug the flash drive in.   
+After following those steps, put the code and pdfs in /boot/books/, a folder you have create.  This way you can add books from a regular computer, since the boot folder is visible when you plug the flash drive in.   
 
 Next, from the pi (or ssh into it if that is your thing) open the .config folder in the /home/pi/ folder (cd .config) and then create a folder called autostart if it doesn't exist.  Inside this directory create a text file called eReader.desktop containing the following lines:
 ```
@@ -72,3 +72,4 @@ Now when you reboot it should display whatever pdfs you have in /boot/books/ as 
 Enjoy.
 
 Sample ebook from https://www.gutenberg.org/ebooks/11
+Dejavu font from: https://www.fontsquirrel.com/fonts/DejaVu-Sans
