@@ -2,10 +2,13 @@
 import os
 #import pdf2image
 from getkey import getkey, keys
-Test=False#True#False
+Test=True#False#False
 if not Test:
     from waveshare_epd import epd4in2
     directory="/boot/books/"
+    #buttons
+    import buttonshim
+    from evdev import uinput, UInput, ecodes as e
 else:
     directory="."
 import time
@@ -21,9 +24,7 @@ import ebooklib
 from ebooklib import epub
 import html2text
 import io
-#buttons
-import buttonshim
-from evdev import uinput, UInput, ecodes as e
+
 
 
 #constants
@@ -37,7 +38,8 @@ WLINE=23
 
 if not Test:#pimoroni shim buttons
     KEYCODES = [e.KEY_UP, e.KEY_DOWN, e.KEY_LEFT, e.KEY_RIGHT, e.KEY_ENTER]
-    BUTTONS = [buttonshim.BUTTON_A, buttonshim.BUTTON_B, buttonshim.BUTTON_C, buttonshim.BUTTON_D, buttonshim.BUTTON_E]
+    BUTTONS = [buttonshim.BUTTON_E, buttonshim.BUTTON_D, buttonshim.BUTTON_C, buttonshim.BUTTON_B, buttonshim.BUTTON_A]
+
     ui = UInput({e.EV_KEY: KEYCODES}, name="Button-SHIM", bustype=e.BUS_USB)
 
     @buttonshim.on_press(BUTTONS)
@@ -59,7 +61,7 @@ def get_name_list():
    nameList=[]
    for root, dirs, files in os.walk(directory, topdown=False):
       for name in files:
-         if (root==directory and 
+         if (root==directory and
              (name.endswith(".pdf") or name.endswith(".epub")) and
              not name.startswith('._')):
             #print(name)
@@ -67,7 +69,7 @@ def get_name_list():
    return nameList
 
 if Test:
-    font = ImageFont.truetype('/Library/Fonts/Verdana.ttf',FONTSIZE)
+    font = ImageFont.truetype('/Library/Fonts/DejaVuSans.ttf',FONTSIZE)
     width,height=400,300
 else:
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", FONTSIZE)
@@ -210,7 +212,7 @@ def read_book(name):
         if len(text)<=1:#skip empty pages
             page+=1
             continue
-        print(len(text),page,line,chapter)
+        if not Test: print(len(text),page,line,chapter)
         image = Image.new("RGB", (height, width))
         draw = ImageDraw.Draw(image)
         draw.rectangle(
@@ -222,7 +224,7 @@ def read_book(name):
         #help from https://stackoverflow.com/questions/8257147/wrap-text-in-pil
         textList=textwrap.wrap(text, width=WLINE)
         imageText="\n".join(textList[line:line+dLine])
-        if '![' in imageText:#TODO check for image on page
+        if '![' in imageText:#checks for image on page
             image,text=extract_image(text,book,image)
             isImage=True
             #print(len(imageText))
@@ -239,7 +241,7 @@ def read_book(name):
         if not Test:
             buttonshim.set_pixel(0x00,0x00,0x00)#turn off while waiting
         key = getkey()
-        if key == keys.RIGHT:
+        if key == keys.RIGHT or key==keys.DOWN:
             if not Test:
                 buttonshim.set_pixel(0x94, 0x00, 0xd3)
             if not isImage:#if there was an image keep line the same
@@ -248,9 +250,9 @@ def read_book(name):
                     oldPageLen=len(textList)
                     line=0
                     page+=1
-        elif key == keys.LEFT:
+        elif key == keys.LEFT or key==keys.UP:
             if not Test:
-                buttonshim.set_pixel(0x00, 0x00, 0xff)
+                buttonshim.set_pixel(0x00, 0x00, 0xff)#blue
             isImage=False
             line-=dLine
             if line<0:
@@ -263,6 +265,8 @@ def read_book(name):
         #elif key==keys.DOWN:
         #    zoom-=.1
         else:
+            if not Test:
+                buttonshim.set_pixel(0xff, 0x00, 0x00)#red
             quitIt=True
        #elif key == 'a':
        #elif key == 'Y':
