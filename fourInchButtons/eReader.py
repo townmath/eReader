@@ -80,25 +80,12 @@ else:
 
 def convert_pdf_to_string(file):#_path):
     doc=slate3k.PDF(file)#open(file_path,'rb'))
+    #print(doc)
     #test=slate3k.utils.normalise_whitespace(''.join(doc[0]).replace('\n', ' '))
     return doc.text().replace('- ','')
 
-def extract_image(text,book,image):
-    text=text.replace('\n','')
-    index=text.find('![')
-    hrefStart,hrefEnd=None,None
-    for i in range(index,len(text)):
-        if text[i]=='(':
-            hrefStart=i+1
-        elif text[i]==')' and hrefStart is not None:
-            hrefEnd=i
-            break
-    if hrefEnd is None:#image is across two text blocks, bummer
-        return None,text[:index]
-    href=text[hrefStart:hrefEnd]
-    print(href)
-    imgObj=book.get_item_with_href(href)
-    stream=io.BytesIO(imgObj.content)
+def get_image_from_bytes(byteString,image):
+    stream=io.BytesIO(byteString)
     newImage= Image.open(stream)
     #image=image.convert("P")
     #image=image.rotate(90, Image.NEAREST, expand = 1)#to match the screen
@@ -109,9 +96,74 @@ def extract_image(text,book,image):
     newImage=newImage.resize((newHeight,newWidth),Image.LANCZOS)#if it is a size problem
     image.paste(newImage,((height-newHeight)//2,(width-newWidth)//2))
     print(w,width,newWidth,h,height,newHeight,image)
-    return image,text[:index]+text[hrefEnd+1:]
+    return image
+
+def extract_image(imageText,text,book,image):
+    print(imageText)
+    def get_href_index(text,index):
+        hrefStart,hrefEnd=None,None
+        for i in range(index,len(text)):
+            if text[i]=='(':
+                hrefStart=i+1
+            elif text[i]==')' and hrefStart is not None:
+                hrefEnd=i
+                break
+        return hrefStart,hrefEnd
+    imageText=imageText.replace('\n','')
+    index=imageText.find('![')
+    hrefStart,hrefEnd=get_href_index(imageText,index)
+    print(hrefStart,hrefEnd)
+    if hrefEnd is None:#image is across two text blocks
+        start=text.find(imageText[index:])
+        hrefStart,hrefEnd=get_href_index(text,start)
+        if hrefEnd is None:#still across two text blocks, bummer
+            return None,text[:start]
+        href=text[hrefStart:hrefEnd]
+        print(href)
+        imgObj=book.get_item_with_href(href)
+        image=get_image_from_bytes(imgObj.content,image)
+        return image,text[:start]+text[hrefEnd+1:]
+    else:
+        start=text.find(imageText[index:hrefEnd])
+        href=imageText[hrefStart:hrefEnd]
+        print(start,hrefEnd,href)
+        imgObj=book.get_item_with_href(href)
+        image=get_image_from_bytes(imgObj.content,image)
+        return image,text[:start]+text[start+(hrefEnd-index)+1:]
 
 def extract_text_pdf(pdfPage):
+    # xObject = pdfPage['/Resources'].get('/XObject',None)#.getObject()
+    # print(pdfPage.__dict__)
+    # print(xObject)
+    # image=None
+    # if xObject is not None:
+    #     for obj in xObject:
+    #         if xObject[obj]['/Subtype'] == '/Image':
+    #             size = (xObject[obj]['/Width'], xObject[obj]['/Height'])
+    #             data = xObject[obj].__dict__['_data']#.getData()
+    #             print(xObject[obj]['/Filter'])
+    #             image = Image.new("RGB", (height, width))
+    #             image=get_image_from_bytes(data,image)
+    #             # if xObject[obj]['/ColorSpace'] == '/DeviceRGB':
+    #             #     mode = "RGB"
+    #             # else:
+    #             #     mode = "P"
+    #             # if xObject[obj]['/Filter'][0] == '/FlateDecode':
+    #             #     img = Image.frombytes(mode, size, data)
+    #             #     img.save(obj[1:] + ".png")
+    #             # elif xObject[obj]['/Filter'][0] == '/DCTDecode':
+    #             #     img = open(obj[1:] + ".jpg", "wb")
+    #             #     img.write(data)
+    #             #     img.close()
+    #             # elif xObject[obj]['/Filter'][0] == '/JPXDecode':
+    #             #     img = open(obj[1:] + ".jp2", "wb")
+    #             #     img.write(data)
+    #             #     img.close()
+    # import pdftotext
+    # text=pdfPage.extractText()
+    # print(text)
+    # return text,image
+    #too fancy??
     pdf_writer = PyPDF2.PdfFileWriter()
     pdf_writer.addPage(pdfPage)
     tempFile=tempfile.TemporaryFile()#open("temp.pdf",'wb')
@@ -149,14 +201,14 @@ def selection(nameList):
         if not Test:
             buttonshim.set_pixel(0x00,0x00,0x00)
         key = getkey()
-        if key == keys.DOWN:
+        if key == keys.DOWN or key == keys.RIGHT:
             if not Test:
                 buttonshim.set_pixel(0x00, 0xff, 0x00)
             if selected>=len(nameList):
                 selected=0
             else:
                 selected+=1
-        elif key == keys.UP:
+        elif key == keys.UP or key == keys.LEFT:
             if not Test:
                 buttonshim.set_pixel(0xff, 0xff, 0x00)
             if selected<=0:
@@ -165,6 +217,8 @@ def selection(nameList):
                 selected-=1
         else:
             done=True
+            if not Test:
+                buttonshim.set_pixel(0x99, 0x00, 0x00)#red
     #print(outName)
     return nameList[selected]
 
@@ -193,14 +247,17 @@ def read_book(name):
     while not quitIt:
         if page!=oldPage:
             if name.endswith('pdf'):
+                #print(page)
                 pdfPage = read_pdf.getPage(page)
                 text=extract_text_pdf(pdfPage)
+                #print(text)
             elif name.endswith('epub'):
                 if page>=len(items):
                     print("end of book")
                     page-=1
                 chapter=book.get_item_with_id(items[page])
                 text=extract_text_epub(chapter)
+                #print(text)
             text=text.replace('\n',' ')
             oldLen=len(text)+1
             while oldLen!=len(text):
@@ -212,7 +269,7 @@ def read_book(name):
         if len(text)<=1:#skip empty pages
             page+=1
             continue
-        if not Test: print(len(text),page,line,chapter)
+        #print(len(text),page,line,chapter)
         image = Image.new("RGB", (height, width))
         draw = ImageDraw.Draw(image)
         draw.rectangle(
@@ -225,8 +282,10 @@ def read_book(name):
         textList=textwrap.wrap(text, width=WLINE)
         imageText="\n".join(textList[line:line+dLine])
         if '![' in imageText:#checks for image on page
-            image,text=extract_image(text,book,image)
+            #print(imageText)
+            image,text=extract_image(imageText,text,book,image)
             isImage=True
+            #print(text)
             #print(len(imageText))
         else:
             draw.text((x, y), imageText, font=font, fill=TEXT_COLOR)
