@@ -2,7 +2,7 @@
 import os
 #import pdf2image
 from getkey import getkey, keys
-Test=True#False#False
+Test=False#True#
 if not Test:
     from waveshare_epd import epd4in2
     directory="/boot/books/"
