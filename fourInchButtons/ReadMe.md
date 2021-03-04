@@ -1,6 +1,6 @@
 For this version, I started with the "fourInchKeys" version and then added a button SHIM from Pimoroni.  Since I was upgrading, I added ePub support and it now shows images as well as text.  I wanted this version to be a little more polished, so I used a Pi Zero and a 3D printed case instead of a cardboard box.  
 
-<bold>Setup:</bold>
+<b>Setup:</b><br>
 First get your pi setup (https://www.raspberrypi.org/%20downloads/) I am using the lite version since this will be running headless.  
 
 After raspi-config to set up your wifi and other settings, run
