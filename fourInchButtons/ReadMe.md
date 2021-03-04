@@ -29,7 +29,7 @@ Now we'll install the dependencies
 ```
 sudo pip3 install -r requirements.txt
 ```
-Now to following the steps here from the ePaper company: https://www.waveshare.com/wiki/4.2inch_e-Paper_Module#Raspberry_Pi
+Now to follow the steps here from the ePaper company: https://www.waveshare.com/wiki/4.2inch_e-Paper_Module#Raspberry_Pi
 
 We will enable SPI and I2C interface using raspi-config under 3 Interface Options, select 4 SPI and yes to enable (then do the same for I2C).  Much of the next few steps are pasted verbatim from the linked wiki.  We'll install BCM libraries.
 
