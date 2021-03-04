@@ -73,7 +73,6 @@ Finally the eReader in action. <br>
 <img src="eReader_finished.JPG" height=600><br>
 <br>
 Enjoy.
-
-Sample ebook from https://www.gutenberg.org/ebooks/11     
-
-Dejavu font from: https://www.fontsquirrel.com/fonts/DejaVu-Sans
+Alice's Adventures in Wonderland from https://www.gutenberg.org/ebooks/11  <br>
+Winnie the Pooh from https://archive.org/details/AAMilneWinnieThePooh <br>
+Dejavu font from: https://www.fontsquirrel.com/fonts/DejaVu-Sans 
