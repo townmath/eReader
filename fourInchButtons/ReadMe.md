@@ -68,10 +68,10 @@ Exec= x-terminal-emulator -e "python3 /boot/books/eReader.py"
 Now when you reboot it should display whatever pdfs you have in /boot/books/ as a simple menu, use up and down arrows to select and enter to choose.  Once your book is open, right arrow is forward pages, left arrow is back.  Any other key will quit.  This is meant to be able to run headless, that is why it shuts down when you exit and starts on startup.  
 
 Here is the inside, I hot glued the pieces in place. 
-<img src="eReader_guts.JPG" width=800 height=600>
+<img src="eReader_guts.JPG" height=600>
 
 Finally the eReader in action. 
-![](eReader_finished.JPG =600x800)
+<img src="eReader_finished.JPG" height=600>
 
 Enjoy.
 
