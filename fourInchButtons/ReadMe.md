@@ -66,11 +66,11 @@ Exec= x-terminal-emulator -e "python3 /boot/books/eReader.py"
 ```
 Now when you reboot it should display whatever pdfs you have in /boot/books/ as a simple menu, use up and down arrows to select and enter to choose.  Once your book is open, right arrow is forward pages, left arrow is back.  Any other key will quit.  This is meant to be able to run headless, that is why it shuts down when you exit and starts on startup.  
 
-Then I (printed the case)[https://www.thingiverse.com/thing:4784035]. 
+Then I [printed the case](https://www.thingiverse.com/thing:4784035). 
 And then I hot glued the pieces in place. <br>
 <img src="eReader_guts.JPG" height=600><br>
 <br>
-I had an Adafruit LiPo battery and (Powerboost)[https://www.adafruit.com/product/1944] from another project, but any power supply will do. <br>
+I had an Adafruit LiPo battery and [Powerboost](https://www.adafruit.com/product/1944) from another project, but any power supply will do. <br>
 Finally the eReader in action. <br>
 <img src="eReader_finished.JPG" height=600><br>
 <br>
