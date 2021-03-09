@@ -4,6 +4,6 @@ The six inch ePaper display is the [HD one from waveshare](https://www.waveshare
 ![](eReader_in_action.JPG)
 Besides treating the pdf page as an image instead of text, the difference between this and the 4 inch button version is that the buttons are on the bottom so I had to rearrange their order.  Right most is next page, left most is previous page, middle right is zoom in, middle left is zoom out, and middle is enter/sleep/shutdown.  
 ![](eReader_buttons.JPG)
-If you use my (or their) IT8951 code you need to compile it as a shared library like so:    
+If you use [my](https://github.com/townmath/IT8951) ([or their](https://github.com/waveshare/IT8951) [IT8951 code](https://github.com/townmath/IT8951) you need to compile it as a shared library like so:    
 `gcc -shared -Wall -Wl,-soname,IT8951 IT8951.c miniGUI.c main.c AsciiLib.c bmp.c -o IT8951.so -lbcm2835`.    
 Thanks to https://stackoverflow.com/questions/5081875/ctypes-beginner for the format.   
