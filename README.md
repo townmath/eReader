@@ -1,5 +1,5 @@
 # eReader
-This is my attempts at making an inexpensive, open source, eReader.  Apart from the high-minded ideals of an open source reader, I also made this because the fact that I still print stuff out on physical paper makes me sad.  So far I have made Raspberry Pi versions, but hope to have an Arduino version soon.   
+This is my attempts at making an inexpensive, open source, eReader.  Apart from the high-minded ideals of an open source reader, I also made this because the fact that I still print stuff out on physical paper makes me sad.  There are several versions to choose from, see the comparison chart below to find the one that is right for you!   
 
 Comparison:
 |                | [Four Inch Buttons](https://github.com/townmath/eReader/tree/main/fourInchButtons) | [Four Inch Keys](https://github.com/townmath/eReader/tree/main/fourInchKeys) | [Uno Book](https://github.com/townmath/eReader/tree/main/unoBook)       | [Six Inch Buttons](https://github.com/townmath/eReader/tree/main/sixInchButtons) |
