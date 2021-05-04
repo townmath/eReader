@@ -14,6 +14,6 @@ Now when you plug it in, it should work!
 <video width="320" height="240">
   <source src="unoBook_in_action.mov" type="video/mp4">
 </video><br>
-![Uno Book in Action](unoBook_in_action.gif)
+<img src="unoBook_in_action.gif">
 Enjoy.<br>
 The Innocents Abroad by Mark Twain from https://www.gutenberg.org/ebooks/3176  <br>
