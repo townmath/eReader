@@ -1,6 +1,6 @@
 For this version, I started with the [Open Book code by Joey Castillo](https://github.com/joeycastillo/The-Open-Book) and then erased as much as I could while still leaving basic functionality so it could fit on an Arduino Uno.  You can only read one book at a time so that is why this one is called the Uno Book, it is on the Uno and you can only read one book at a time.  
-<img src="unoBook_finished.JPG" height=600><br>
-For this I used an Arduino Uno knock-off I got from eBay for about 5 dollars, a [Waveshare 4.2-inch epd](https://www.waveshare.com/wiki/4.2inch_e-Paper_Module), an [E-paper Shield](https://www.waveshare.com/wiki/E-Paper_Shield), a blueberry clam-shell container, a small SD card, an [AA battery holder](https://www.adafruit.com/product/830), a few [momentary switches](https://www.adafruit.com/product/830), and some breadboard wires.  The reason I used the knock-off Arduino was because it has holes for soldering. <img src="unoHoles.JPG" height=300><br>
+<img src="unoBook_finished.JPG" height=600 align="left">
+For this I used an Arduino Uno knock-off I got from eBay for about 5 dollars, a [Waveshare 4.2-inch epd](https://www.waveshare.com/wiki/4.2inch_e-Paper_Module), an [E-paper Shield](https://www.waveshare.com/wiki/E-Paper_Shield), a blueberry clam-shell container, a small SD card, an [AA battery holder](https://www.adafruit.com/product/830), a few [momentary switches](https://www.adafruit.com/product/830), and some breadboard wires.  The reason I used the knock-off Arduino was because it has holes for soldering. <img src="unoHoles.JPG" height=300 align="right">
 
 <b>Setup:</b><br>
 The setup for this version should be much easier than the Raspberry Pi versions.
@@ -14,6 +14,6 @@ Now when you plug it in, it should work!
 <video width="320" height="240">
   <source src="unoBook_in_action.mov" type="video/mp4">
 </video><br>
-![](unoBook_in_action.mov)
+![Uno Book in Action](unoBook_in_action.gif)
 Enjoy.<br>
 The Innocents Abroad by Mark Twain from https://www.gutenberg.org/ebooks/3176  <br>
